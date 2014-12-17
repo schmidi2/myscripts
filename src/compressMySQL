@@ -1,0 +1,21 @@
+#!/bin/bash
+###
+# Backup Script for Mysql
+# compresses all Client_Backups to a tar.gz
+###
+#
+# Specify Directory to backup in to
+dirBackupPath=/var/backups/mysql
+
+DB_USER=`grep "^user" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+DB_PASSWD=`grep "^password" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+
+
+for database in $( mysql -u $DB_USER --password=$DB_PASSWD -e 'show databases;' | cut -d " " -f 2 ); do
+	if [ $database != "Database" ]; then
+	tar cvfz \
+		$dirBackupPath/$database'/weekly_'$database'_'`date +%V`_`date +%Y`.tar.gz \
+		$dirBackupPath/$database/*.sql     \
+		$dirBackupPath/$database/*.sql.gz
+	fi
+done

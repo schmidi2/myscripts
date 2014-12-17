@@ -1,0 +1,9 @@
+#! /bin/bash
+###
+# Backup Script for Mysql
+# compresses all Full_Backups to a weekly tar.gz
+###
+tar cvfz \
+	/Data/Backup/Datenbanken/MySQL/Full/weekly_databases_`date +%V`_`date +%Y`.tar.gz \
+	/Data/Backup/Datenbanken/MySQL/Full/*.sql   \
+	/Data/Backup/Datenbanken/MySQL/Full/*.sql.gz

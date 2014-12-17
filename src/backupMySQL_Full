@@ -1,0 +1,25 @@
+#!/bin/bash
+###
+# Backup Script for Mysql
+# Dumps all DBs
+###
+
+BACKUP_DIR=/var/backups/mysql
+
+DB_USER=`grep "^user" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+DB_PASSWD=`grep "^password" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+
+
+
+
+mysqldump --all-databases \
+	--add-drop-table \
+	--all \
+	--complete-insert \
+	-u $DB_USER \
+	--password=$DB_PASSWD \
+	| gzip > $BACKUP_DIR/all_databases_`date +%w`_`date +%a`.sql.gz
+
+
+# delete full database dumps, older than one week (Benj,2008-04-28)
+find $BACKUP_DIR/ -type f -mtime +7 -exec rm "{}" \;

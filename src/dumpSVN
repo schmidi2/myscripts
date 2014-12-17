@@ -1,0 +1,70 @@
+#!/bin/bash
+### dumpSVN
+#   dumps all SVN projects
+###
+
+# Backup auf Backupserver und den Tapes reicht völlig aus!!
+
+
+exit
+
+# specify SVN directory
+dirConfPath=/Data/SVNProjekte
+# specify Backup directory
+dirBackupPath=/var/backups/svn
+
+mkdir /tmp/.dumpSVN/
+
+for project in $( ls $dirConfPath | cut -d "." -f 3 ); do
+	echo "dumping $project"
+
+	# checks if the repository was modified
+	stat $project/db/revisions | grep "^Modify" | cut -d " " -f 2
+
+	OLD_UPDATED=`cat /tmp/.dumpSVN/$THIS.$project.UPDATED 2>/dev/null`
+	UPDATED=`date +"%H%d%m%y"`
+	echo $UPDATED > /tmp/.dumpSVN/$THIS.$project.UPDATED
+
+	if [ "$OLD_UPDATED" = "$UPDATED"  ]
+	then
+		echo "   existing backup is up-to-date. Nothing todo."
+	else
+		tar -
+		exit
+	fi
+
+done
+
+
+
+exit
+exit
+exit
+# Old Version, used too much cpu for a long time
+
+# set umask
+umask 0077
+
+for project in $( ls $dirConfPath | cut -d "." -f 3 ); do
+       	echo "dumping $project"
+	
+	fileName=$dirBackupPath"/"$project"_"`date +%w_%a`".dmp.bz2"
+	
+	svnadmin dump $dirConfPath/$project | bzip2 > $fileName
+
+	# If the new dump is the same as the old one, 
+	# delete the old dump!
+	fileNameOld=$dirBackupPath"/"$project"_"`date -d "1 day ago" +%w_%a`".dmp.bz2"
+
+	fileMD5=`md5sum $fileName | cut -c 0-32`
+	fileMD5Old=`md5sum $fileNameOld 2>/dev/null | cut -c 0-32`
+
+	if [ "$fileMD5" = "$fileMD5Old" ] ;
+	then
+		rm -v $fileNameOld
+	fi
+done
+
+# Replace equal files with symlink (use of fdupes)
+# Source:  http://www.asashi.net/pages/scripts/duplicate_finder.txt
+# date -d "1 day ago"

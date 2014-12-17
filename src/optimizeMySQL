@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# http://byrev.org/c/bookmarks/mysql/
+#mysqlcheck --all-databases -B --analyze -r -e -o
+
+
+mysqlcheck --auto-repair --check --optimize --all-databases

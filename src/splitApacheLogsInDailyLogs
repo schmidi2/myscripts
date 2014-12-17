@@ -1,0 +1,80 @@
+#!/bin/bash
+
+echo PWD: `pwd`
+sleep 3
+
+echo -n "Enter domain name: "
+read DOMAIN
+
+
+find . -maxdepth 1 -type f -name "*.gz" | while read F
+do
+	gzip -d $F
+done
+
+
+echo -n "" > access.log
+
+echo 
+echo Pipe data into access.log \(ordered by date\!\!\)
+ls -r *.log* | grep -v "^access.log$" | while read F
+do
+	echo $F
+	cat $F >> access.log
+done
+
+
+# taraqum.ch_logs-01.09.2008.txt
+# access_logs-01.09.2008.txt
+
+rm byDay/* 2>/dev/null
+mkdir byDay/ 2>/dev/null
+cd byDay/
+cat ../access.log | while read I
+do
+	DAY=`echo $I | cut -d "[" -f 2 | cut -d "/" -f 1`
+	MONTH=`echo $I | cut -d "[" -f 2 | cut -d "/" -f 2` ##
+	YEAR=`echo $I | cut -d "[" -f 2 | cut -d "/" -f 3 | cut -d ":" -f 1`
+
+	echo $I
+	echo $I >> $DOMAIN"_logs-"$DAY.$MONTH.$YEAR.txt
+done
+
+echo
+echo
+echo Replace month name with number 
+echo
+
+rename 's/Jan/01/' *
+rename 's/Feb/02/' *
+rename 's/Mar/03/' *
+rename 's/Apr/04/' *
+rename 's/May/05/' *
+rename 's/Jun/06/' *
+rename 's/Jul/07/' *
+rename 's/Aug/08/' *
+rename 's/Sep/09/' *
+rename 's/Oct/10/' *
+rename 's/Nov/11/' *
+rename 's/Dec/12/' *
+
+
+#echo
+#echo
+#echo Compress all
+#echo
+#gzip *
+
+
+echo
+echo touch
+echo
+ls -r *.txt* | while read F
+do
+	YEAR=`echo "$F" | cut -d "." -f 2- | cut -d "-" -f 2 | cut -d "." -f 3`
+	MONTH=`echo "$F" | cut -d "." -f 2- | cut -d "-" -f 2 | cut -d "." -f 2`
+	DAY=`echo "$F" | cut -d "." -f 2- | cut -d "-" -f 2 | cut -d "." -f 1`
+	touch --date=$YEAR-$MONTH-$DAY $F
+done
+
+

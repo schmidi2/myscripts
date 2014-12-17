@@ -1,0 +1,81 @@
+#!/bin/bash
+#
+#    This little script finds duplicate files parsing current directory
+#    and recursively all the others inside. It can accept more than one
+#    dir to parse as args: eg:
+#    ./duplicate_finder.sh .
+#    ./duplicate_finder.sh ~/my_photos ~/las_vegas_marriage /some/where/else/folder
+#
+#    For duplicate i mean file with same or different names located in
+#    same or different dirs.  The parsing is first done on sizes and
+#    then, only on matching files, on their md5 checksum. I hope that
+#    this can speed up the parsing and definitely eliminate false
+#    positives.
+#    
+#    The script does wide use of find and inodes this is to avoid
+#    problems with strange filenames.
+#
+#    Known bugs: a little problem with md5sum, it prepends a \
+#    (backslash) to the sum if the filename contains one or mode \, this
+#    problem affects only the output not the functionality of the script
+#    Workarounds for this problem are welcome.
+#
+#    This script is a deep rewrite of one i've found online, written by
+#    Jarno Elonen (thanks)
+#    Lately I found fdupes, a C program that does the same (and more) of
+#    this script.
+#
+#    Do anything you like with this but DO NOT call me for ANY problem
+#    :-)
+#
+#    pit at asashi a dot net site
+#
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software Foundation,
+#    Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+
+if [ -e ".duplic" ] ;
+then
+	echo "Sorry, you should delete an old .duplic file"
+	exit 0
+else
+echo "#!/bin/bash" > .duplic
+find $@ -type f -printf "%s\n" |\
+sort | uniq -d |\
+while read x ; do
+	find $@ -size "$x"c -printf "%i\t" -exec md5sum {} \; ;
+	done |\
+awk '{print $2,$1}' | sed -e s/^[\\]// |\
+sort --key=1,32 | uniq -w 32 -D | awk '{print $2}' |\
+while read y ; do
+	find $@ -inum $y -printf "#find " -exec echo -n "$@" \; -printf " -inum %i -exec rm -i \"{}\" \";\" # size: %s\n#" -exec md5sum {} \; -printf "\n"; done >> .duplic
+
+chmod u+x .duplic
+ls -l .duplic
+fi
+exit 0
+
+#    Let me explain...
+#
+#    1- fast check for an existing .duplic file
+#    2- echo script header
+#    3- find regular files - feed sort & uniq to find those of equal size
+#    4- exec md5sum on this files
+#    5- sort by sum
+#    6- write instance for remove in the .duplic files
+#
+# vim:tabstop=3:expandtab:shiftwidth=3:autoindent
+#

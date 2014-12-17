@@ -1,0 +1,39 @@
+#!/bin/bash
+### updateStats
+#   updates dynamicly all statistics configurations
+#
+#   ls to stdout of /Data/Logs/
+#   cut off unwanted characters (_access.log) (delimeter: _)
+#   update configurations with awstats (index.pl) in a for loop
+#
+###
+
+
+echo Webs with no access since last parsing:
+echo
+find /Data/Logs/statistik -size 0M   | while read I
+do
+#	echo -n `stat $I | grep "^Modify" | cut -d " " -f 2-3 | cut -d "." -f 1`
+#	echo -n "   "
+	echo "$I"
+done
+
+
+echo
+echo
+echo
+for domain in $( ls /Data/Logs/statistik/ | grep access.log | cut -d "_" -f 1 ); do
+	/Data/awstats/cgi-bin/index.pl -update config=$domain
+done
+
+
+echo
+echo
+echo
+echo Following logfiles were not purged by awstats. The associated websites are
+echo not configured to be analysed by awstats:
+echo
+find /Data/Logs/statistik -size +1M   | while read I
+do
+	du -sh $I
+done

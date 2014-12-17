@@ -1,0 +1,36 @@
+#!/bin/bash
+### repairSVN
+#
+# Repairs all repositories
+#
+# If param1 is given, only the repository with this name
+#  will be checked
+#
+# DO NOT RUN THIS SCRIPT WHILE PEOPLE ARE WORKING WITH SVN!
+#
+###
+
+# specify SVN directory
+dirSVNPath=/var/lib/svn
+# specify Backup directory
+dirBackupPath=/tmp
+
+for project in $( ls $dirSVNPath | cut -d "." -f 3 ); do
+       	echo "checking $project"
+
+	projectPath=$dirSVNPath/$project
+	
+	# Make backup in /tmp/
+#	cp -ra $projectPath $dirBackupPath
+
+	# Repair
+	svnadmin recover $projectPath
+
+	# Set permissions
+	chown -R www-data.tupma $projectPath
+	chmod -R u=rwX,g=rwX,o= $projectPath
+
+	echo
+	echo
+	echo
+done

@@ -1,0 +1,36 @@
+#!/bin/bash
+###
+# BackupScript for MySQL Databases
+# Dumps all Databases in MySQL
+###
+#
+
+BACKUP_DIR=/var/backups/mysql
+
+DB_USER=`grep "^user" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+DB_PASSWD=`grep "^password" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+
+
+# Specify backup directory
+for database in $( mysql -u $DB_USER --password=$DB_PASSWD -e 'show databases;' | cut -d " " -f 2 ); do
+	if [ $database != "Database" ]; then
+		mkdir $BACKUP_DIR/$database
+		mysqldump --add-drop-table \
+			--skip-extended-insert \
+			-u $DB_USER \
+			--password=$DB_PASSWD \
+			-B $database \
+			| gzip > $BACKUP_DIR/$database/$database'_'`date +%w`_`date +%a`.sql.gz
+	fi
+done
+
+
+# --all
+# --complete-insert \
+
+
+# delete database dumps, older than X days (Benj,2008-04-28)
+find $BACKUP_DIR/*/ -type f -mtime +10 -exec rm "{}" \;
+
+# delete empty directories (deleted databases)
+find $BACKUP_DIR/ -type d -exec rmdir "{}" 2>/dev/null \;

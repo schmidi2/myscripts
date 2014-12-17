@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# Autor: Benjamin Schmidt <schmidi2@directbox.com>
+# Date: 2007-04-04 16:52
+# License: GNU LGPL
+#
+# 1. Move php-files with the content "phpinfo()" to a temp-directory.
+# 2. Touch them (timestamp)
+# 3. Delete all files in this temp-directory which are older than 7 days
+
+DIR_DATAINET="/var/www/"
+DIR_TEMP="/var/tmp/removeFiles_phpinfo/"
+
+FILES=("phpinfo.php" "info.php" "infophp.php")
+
+
+mkdir $DIR_TEMP 2>/dev/null
+
+for file in ${FILES[@]}
+do
+	find $DIR_DATAINET -iname "$file" -size -200c -type f \
+		-exec echo "Removed from web: {}" \; \
+		-exec touch "{}" \; \
+		-exec mv "{}" $DIR_TEMP \;
+done
+
+find $DIR_TEMP -type f -mtime +7 \
+	-exec echo "Permanently deleted: {}" \; \
+	-exec rm "{}" \;
