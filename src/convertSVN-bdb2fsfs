@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# convertSVN-bdb2fsfs
+#
+# This script migrates all your subversion repositories on the
+# server (not the checkouts) from the old format version 4 (BDB) to the new
+# Format version 5 (FSFS).
+#
+# It cannot migration from svn format version 3 .
+#
+# BEFORE YOU START THIS SCRIPT, ADJUST THE TWO PATHS BELOW.
+#
+# Check the output of this script for errors.
+#
+# With help from http://www.robertkan.net/blog/2009/05/15/failed-to-load-module-for-fs-type-bdb-in-tortoisesvn-16x
+#
+#
+#
+#
+# Benjamin Schmidt <schmidi@directbox.com>
+# Date: 23.01.2015 14:18
+#
+#
+
+DIR=/var/lib/svn
+DIR_DEST=/var/lib/svn-fsfs
+
+exit     # REMOVE THIS LINE AFTER YOU ADJUSTED THE TWO PATHS ABOVE
+
+
+
+mkdir $DIR_DEST
+for PROJECT in $( ls ); do
+
+        echo $PROJECT
+
+
+        cd $DIR
+
+        rm /tmp/SVNDUMP.dump
+        svnadmin dump $PROJECT > /tmp/SVNDUMP.dump
+        if [ $? = 0 ]
+        then
+                cd $DIR_DEST
+                mkdir $PROJECT
+                svnadmin create $PROJECT
+                svnadmin load $PROJECT < /tmp/SVNDUMP.dump
+        fi
+done
