@@ -4,4 +4,7 @@
 #mysqlcheck --all-databases -B --analyze -r -e -o
 
 
-mysqlcheck --auto-repair --check --optimize --all-databases
+DB_USER=`grep "^user" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+DB_PASSWD=`grep "^password" /etc/mysql/debian.cnf | head -n 1 | cut -d "=" -f 2 | cut -d " " -f 2`
+
+mysqlcheck -u $DB_USER --password=$DB_PASSWD  --auto-repair --optimize --all-databases
